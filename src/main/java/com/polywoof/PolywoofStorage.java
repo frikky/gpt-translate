@@ -126,47 +126,6 @@ public class PolywoofStorage implements AutoCloseable
 		});
 	}
 
-	@Deprecated
-	public void select(String key, Language column, @Nullable Selectable callback)
-	{
-		if(!status())
-			return;
-
-		executor.execute(() ->
-		{
-			try(PreparedStatement schema = db.prepareStatement("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=? AND COLUMN_NAME=?"))
-			{
-				schema.setString(1, "DEEPL");
-				schema.setString(2, column.toString());
-
-				if(!schema.executeQuery().next())
-				{
-					if(callback != null)
-						callback.select(null);
-					return;
-				}
-
-				try(PreparedStatement select = db.prepareStatement(String.format("SELECT `%1$s` FROM `DEEPL` WHERE RUNESCAPE=? AND `%1$s` IS NOT NULL", column)))
-				{
-					select.setString(1, key);
-
-					ResultSet result = select.executeQuery();
-					String string = null;
-
-					if(result.next())
-						string = result.getString(column.toString());
-
-					if(callback != null)
-						callback.select(string);
-				}
-			}
-			catch(SQLException error)
-			{
-				log.error("Failed to select from the database (deprecated)", error);
-			}
-		});
-	}
-
 	public void insert(String string, String key, Language column, DataType table, @Nullable Insertable callback)
 	{
 		if(!status())

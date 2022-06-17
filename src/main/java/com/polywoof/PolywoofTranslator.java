@@ -21,7 +21,7 @@ import java.util.List;
 public class PolywoofTranslator
 {
 	private static final JsonParser parser = new JsonParser();
-	private static final List<PolywoofStorage.Language> trusted = new ArrayList<>(30);
+	private static final List<PolywoofStorage.Language> trusted = new ArrayList<>(100);
 	private static final List<PolywoofStorage.Language> offline = languageLoader(PolywoofPlugin.class, "/languages.json");
 
 	private final OkHttpClient client;
@@ -184,21 +184,10 @@ public class PolywoofTranslator
 		{
 			if(select == null)
 			{
-				storage.select(string, language, deprecated ->
+				translate(string, language, insert ->
 				{
-					if(deprecated == null)
-					{
-						translate(string, language, insert ->
-						{
-							storage.insert(insert, string, language, type, () -> log.debug("[{}] INSERT", language));
-							callback.translate(insert);
-						});
-					}
-					else
-					{
-						storage.insert(deprecated, string, language, type, () -> log.debug("[{}] DEPRECATED", language));
-						callback.translate(deprecated);
-					}
+					storage.insert(insert, string, language, type, () -> log.debug("[{}] INSERT", language));
+					callback.translate(insert);
 				});
 			}
 			else
@@ -214,22 +203,23 @@ public class PolywoofTranslator
 		if((string = PolywoofFormatter.filter(string)).isEmpty() || !(language instanceof TrustedLanguage))
 			return;
 
-		RequestBody request = new FormBody.Builder()
-			.add("text", string)
+		FormBody.Builder request = new FormBody.Builder()
 			.add("target_lang", language.toString())
 			.add("source_lang", "en")
 			.add("preserve_formatting", "1")
 			.add("tag_handling", "html")
-			.add("non_splitting_tags", "br")
-			.build();
+			.add("non_splitting_tags", "br");
 
-		post("/v2/translate", request, body ->
+		for(String split : string.split("\n"))
+			request.add("text", split);
+
+		post("/v2/translate", request.build(), body ->
 		{
 			JsonObject json = parser.parse(body).getAsJsonObject();
-			StringBuilder output = new StringBuilder(100);
+			StringBuilder output = new StringBuilder(128);
 
 			for(JsonElement element : json.getAsJsonArray("translations"))
-				output.append(StringEscapeUtils.unescapeHtml4(element.getAsJsonObject().get("text").getAsString()));
+				output.append(StringEscapeUtils.unescapeHtml4(element.getAsJsonObject().get("text").getAsString())).append("\n");
 
 			callback.translate(output.toString());
 		});

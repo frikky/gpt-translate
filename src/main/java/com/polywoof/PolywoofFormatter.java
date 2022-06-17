@@ -103,7 +103,7 @@ public class PolywoofFormatter
 	public static String formatOptions(Widget ... options)
 	{
 		int inserter = 0;
-		StringBuilder builder = new StringBuilder(100);
+		StringBuilder builder = new StringBuilder(128);
 
 		for(Widget option : options)
 		{
@@ -129,7 +129,7 @@ public class PolywoofFormatter
 	public static String formatScrolls(Widget[] ... scrolls)
 	{
 		int inserter = -1;
-		StringBuilder builder = new StringBuilder(100);
+		StringBuilder builder = new StringBuilder(128);
 
 		for(Widget[] scroll : scrolls)
 		{

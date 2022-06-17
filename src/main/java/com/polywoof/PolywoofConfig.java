@@ -180,4 +180,8 @@ public interface PolywoofConfig extends Config
 	{
 		return true;
 	}
+
+	/*
+		Ignore
+	*/
 }
