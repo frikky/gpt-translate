@@ -20,4 +20,6 @@ Translation for almost every dialogue and some related text, so you can understa
 
 [![](https://user-images.githubusercontent.com/13049652/161437194-fca3d9c0-7226-40ed-9403-b4c01393f1af.png)](../..)
 
+[![DigitalOcean Referral Badge](https://web-platforms.sfo2.digitaloceanspaces.com/WWW/Badge%203.svg)](https://www.digitalocean.com/?refcode=71af1247dfc7&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
+
 *Люблю Дэйвика.. 💕*
