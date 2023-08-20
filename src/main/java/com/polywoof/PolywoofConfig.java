@@ -36,10 +36,10 @@ public interface PolywoofConfig extends Config
 	@ConfigItem(keyName = "language", name = "Target Language", description = "Type your desired one, «ru» for russian, «fr» french, etc", section = primarySection, position = 0)
 	default String language()
 	{
-		return "ru";
+		return "jp";
 	}
 
-	@ConfigItem(keyName = "key", name = "DeepL API Key", description = "This is REQUIRED, see www.DeepL.com", secret = true, section = primarySection, position = 1)
+	@ConfigItem(keyName = "key", name = "OpenAI API Key", description = "This is REQUIRED, see platform.openai.com", secret = true, section = primarySection, position = 1)
 	default String key()
 	{
 		return "";

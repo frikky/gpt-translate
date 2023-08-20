@@ -127,10 +127,10 @@ public class PolywoofTranslator
 		try
 		{
 			Request headers = new Request.Builder()
-				.addHeader("User-Agent", RuneLite.USER_AGENT + " (polywoof)")
-				.addHeader("Authorization", "DeepL-Auth-Key " + key)
+				.addHeader("User-Agent", RuneLite.USER_AGENT + " (polywoof-gpt)")
+				.addHeader("Authorization", "Bearer " + key)
 				.addHeader("Accept", "application/json")
-				.addHeader("Content-Type", "application/x-www-form-urlencoded")
+				.addHeader("Content-Type", "application/json")
 				.addHeader("Content-Length", String.valueOf(request.contentLength()))
 				.url(URL + path)
 				.post(request)
@@ -203,25 +203,69 @@ public class PolywoofTranslator
 		if((string = PolywoofFormatter.filter(string)).isEmpty() || !(language instanceof TrustedLanguage))
 			return;
 
-		FormBody.Builder request = new FormBody.Builder()
-			.add("target_lang", language.toString())
-			.add("source_lang", "en")
-			.add("preserve_formatting", "1")
-			.add("tag_handling", "html")
-			.add("non_splitting_tags", "br");
+		//FormBody.Builder request = new FormBody.Builder()
+		//	.add("target_lang", language.toString())
+		//	.add("source_lang", "en")
+		//	.add("preserve_formatting", "1")
+		//	.add("tag_handling", "html")
+		//	.add("non_splitting_tags", "br");
 
+		// Make the form into JSON instead of URL encoded
 		for(String split : string.split("\n"))
 			request.add("text", split);
 
-		post("/v2/translate", request.build(), body ->
+		// Build the following data as a FormBody.Builder 
+		/* {
+			"model": "gpt-3.5-turbo",
+			"messages": [
+			  {
+				"role": "system",
+				"content": "You are a helpful assistant."
+			  },
+			  {
+				"role": "user",
+				"content": "Hello!"
+			  }
+			]
+		  }
+		  */
+
+		/* DeepL target format:
+		 * {
+			  "translations": [
+			    {
+			      "detected_source_language": "EN",
+			      "text": "Hallo, Welt!"
+			    }
+			  ]
+			}
+		*/
+
+		// Making it it follow the DeepL format
+		
+		// Escape the string to prevent JSON errors
+		string = StringEscapeUtils.escapeJson(string);
+		// Escape the language to prevent JSON errors
+		language = StringEscapeUtils.escapeJson(language.toString());	
+
+		FormBody.Builder request = new FormBody.Builder()
+			.add("model", "gpt-3.5-turbo")
+			.add("messages", "[{\"role\":\"user\",\"content\":\"" + string + "\"}, {\"role\":\"system\",\"content\":\"Translate into the language " + language + " and output the result in the following format: {\\\"translations\\\":[{\\\"text\\\":\\\"translation here\\\"}]}\"}]");
+
+
+		post("/v1/chat/completions", request.build(), body ->
 		{
 			JsonObject json = parser.parse(body).getAsJsonObject();
 			StringBuilder output = new StringBuilder(128);
+			// Print the output string
+			
+			//log.debug("JSON Output 1: {}", 
 
 			for(JsonElement element : json.getAsJsonArray("translations"))
 				output.append(StringEscapeUtils.unescapeHtml4(element.getAsJsonObject().get("text").getAsString())).append("\n");
 
 			callback.translate(output.toString());
+			log.debug("JSON Output 2: {}", output.toString());
 		});
 	}
 
@@ -236,7 +280,7 @@ public class PolywoofTranslator
 
 	public void languages(String type, Supportable callback)
 	{
-		post("/v2/languages", new FormBody.Builder().add("type", type).build(), body ->
+		post("/v1/chat/completions", new FormBody.Builder().add("type", type).build(), body ->
 		{
 			JsonArray json = parser.parse(body).getAsJsonArray();
 
@@ -254,7 +298,8 @@ public class PolywoofTranslator
 
 	public void update(String auth)
 	{
-		URL = auth.endsWith(":fx") ? "https://api-free.deepl.com" : "https://api.deepl.com";
+		//URL = auth.endsWith(":fx") ? "https://api-free.deepl.com" : "https://api.deepl.com";
+		URL = "https://api.openai.com";
 		key = auth;
 	}
 
